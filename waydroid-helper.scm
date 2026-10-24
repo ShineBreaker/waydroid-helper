@@ -11,9 +11,13 @@
 ;;; - data/scripts/ 与 waydroid-cli 的 shebang 已改为 #!/usr/bin/env bash，
 ;;;   bin 下两个入口都以 wrap-program 补 PATH，保证 env 能找到 bash。
 ;;; - Guix 无 systemd: 传空 -Dsystemd-* / -Ddbus-* 不装服务文件。
-;;; - python-pywayland 上游 Guix 还没有，定义在本文件顶部。
+;;; - python-pywayland 上游 Guix 还没有，定义在本文件顶部（与 jeans channel
+;;;   的 modules/jeans/packages/python-xyz.scm 里那份保持一致）。
 ;;; - waydroid 本体不是依赖: PATH 用 prefix 语义保留会话 PATH，
 ;;;   用户 profile 里的 waydroid（如 jeans channel 的包）照常可见。
+;;; - wrapper 的 PATH / GI_TYPELIB_PATH / PYTHONPATH 一律用 gexp 直接展开
+;;;   包引用，不走 label 查表: 查表法在 label 与包名漂移（例如查 "bash"
+;;;   而输入给的是 bash-minimal）时会静默丢掉整条路径。
 
 (use-modules (gnu packages)
              (gnu packages base)
@@ -30,7 +34,6 @@
              (gnu packages pkg-config)
              (gnu packages python)
              (gnu packages python-build)
-             (gnu packages python-check)
              (gnu packages python-web)
              (gnu packages python-xyz)
              (guix build-system meson)
@@ -95,38 +98,49 @@ in the sdist.")
       #~(let ((py-site
               (string-append "/lib/python"
                              #$(version-major+minor (package-version python))
-                             "/site-packages"))
-             ;; 运行时需要 typelib 的库
-             (gi-labels '("gtk" "libadwaita" "vte" "graphene"
-                          "gdk-pixbuf" "gobject-introspection"
-                          "pango" "harfbuzz" "cairo" "glib"))
-             ;; 运行时需要 import 的 python 库
-             (py-labels '("python-pygobject" "python-pycairo"
-                          "python-pywayland" "python-dbus"
-                          "python-aiofiles" "python-httpx"
-                          "python-pyyaml"))
-             ;; 脚本运行时需要从 PATH 找到的工具
-             (bin-labels '("bash" "coreutils" "grep" "sed"
-                           "tar" "pciutils" "fakeroot")))
-          (define (existing-dirs inputs labels suffix)
-            (filter (lambda (d) d)
-                    (map (lambda (label)
-                           (let ((dir (and=> (assoc-ref inputs label)
-                                             (lambda (d)
-                                               (string-append d suffix)))))
-                             (and dir (file-exists? dir) dir)))
-                         labels)))
+                             "/site-packages")))
           (modify-phases %standard-phases
             (add-after 'install 'wrap-program-paths
-              (lambda* (#:key inputs outputs #:allow-other-keys)
+              (lambda* (#:key outputs #:allow-other-keys)
                 (let* ((out (assoc-ref outputs "out"))
+                       ;; 路径一律由 gexp 直接展开包引用，不走 label 查表：
+                       ;; 查表法在 label 与包名不一致时会静默丢掉整条路径
                        (path-dirs
                         (append
                          (list (string-append out "/bin"))
-                         (existing-dirs inputs bin-labels "/bin")))
-                       (gi-dirs (existing-dirs inputs gi-labels
-                                               "/lib/girepository-1.0"))
-                       (py-dirs (existing-dirs inputs py-labels py-site)))
+                         (map (lambda (pkg) (string-append pkg "/bin"))
+                              (list #$bash-minimal
+                                    #$coreutils
+                                    #$grep
+                                    #$sed
+                                    #$tar
+                                    #$pciutils
+                                    #$fakeroot))))
+                       ;; 运行时需要 typelib 的库（typelib 都在各包的 out output，
+                       ;; 与下面 inputs 里的 gtk "out" 对应）
+                       (gi-dirs
+                        (map (lambda (pkg)
+                               (string-append pkg "/lib/girepository-1.0"))
+                             (list #$gtk
+                                   #$libadwaita
+                                   #$vte
+                                   #$graphene
+                                   #$gdk-pixbuf
+                                   #$gobject-introspection
+                                   #$pango
+                                   #$harfbuzz
+                                   #$cairo
+                                   #$glib)))
+                       ;; 运行时需要 import 的 python 库
+                       (py-dirs
+                        (map (lambda (pkg) (string-append pkg py-site))
+                             (list #$python-pygobject
+                                   #$python-pycairo
+                                   #$python-pywayland
+                                   #$python-dbus
+                                   #$python-aiofiles
+                                   #$python-httpx
+                                   #$python-pyyaml))))
                   ;; GUI 主程序: 完整环境
                   (wrap-program (string-append out "/bin/waydroid-helper")
                     `("PATH" ":" prefix ,path-dirs)
@@ -142,7 +156,6 @@ in the sdist.")
     (native-inputs
      `(("gettext-minimal" ,gettext-minimal)
        ("python-wrapper" ,python-wrapper)
-       ("python-pytest" ,python-pytest)
        ("desktop-file-utils" ,desktop-file-utils)
        ("glib" ,glib)                   ; gio-2.0.pc (gnome.post_install 需要)
        ("glib:bin" ,glib "bin")         ; glib-compile-schemas
