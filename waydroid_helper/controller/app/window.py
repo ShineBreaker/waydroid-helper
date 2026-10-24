@@ -503,6 +503,16 @@ class KeyMapper(Adw.Application):
 
 
 def create_keymapper(display_name: str):
+    import gettext
+    import locale
+    import os
+
+    localedir = os.environ.get("LOCALEDIR", "/usr/share/locale")
+    locale.bindtextdomain("waydroid-helper", localedir)
+    locale.textdomain("waydroid-helper")
+    gettext.bindtextdomain("waydroid-helper", localedir)
+    gettext.textdomain("waydroid-helper")
+
     asyncio.set_event_loop_policy(
         GLibEventLoopPolicy()  # pyright:ignore[reportUnknownArgumentType]
     )

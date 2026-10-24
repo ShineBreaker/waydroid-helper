@@ -48,6 +48,7 @@ project_name = '@project_name@'
 
 sys.path.insert(1, pkgdatadir)
 os.environ['PKGDATADIR'] = pkgdatadir
+os.environ['LOCALEDIR'] = localedir
 os.environ['PROJECT_NAME'] = project_name
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 locale.bindtextdomain('waydroid-helper', localedir)

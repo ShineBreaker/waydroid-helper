@@ -66,6 +66,7 @@ waydroid_helper_sources = [
 config_sources = [
     'config/__init__.py',
     'config/file_manager.py',
+    'config/language.py',
     'config/models.py',
 ]
 util_sources = [

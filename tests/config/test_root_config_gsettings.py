@@ -195,3 +195,79 @@ def test_root_config_save_and_load_round_trip_through_gsettings():
     assert reloaded.default_handler.keyboard_inject_mode == "text"
     assert reloaded.default_handler.mouse_natural_scroll is False
     assert reloaded.default_handler.mouse_hover is True
+
+
+def test_apply_language_preference_switches_between_zh_en_and_system():
+    from waydroid_helper.config.language import apply_language_preference
+
+    system_env = {
+        "LANGUAGE": "de_DE:de",
+        "LC_ALL": None,
+        "LC_MESSAGES": "de_DE.UTF-8",
+        "LC_CTYPE": "de_DE.UTF-8",
+    }
+    env = {"LANGUAGE": "de_DE:de", "LC_MESSAGES": "de_DE.UTF-8", "LC_CTYPE": "de_DE.UTF-8"}
+    available = lambda name: True
+
+    assert apply_language_preference(
+        "zh_CN", environ=env, system_env=system_env, locale_probe=available
+    ) == "zh_CN"
+    assert env["LANGUAGE"] == "zh_CN"
+    assert "LC_ALL" not in env
+    assert env["LC_MESSAGES"] == "zh_CN.UTF-8"
+    assert env["LC_CTYPE"] == "zh_CN.UTF-8"
+
+    assert apply_language_preference(
+        "en_US", environ=env, system_env=system_env, locale_probe=available
+    ) == "en_US"
+    assert env["LANGUAGE"] == "en_US:en:C"
+    assert "LC_ALL" not in env
+    assert env["LC_MESSAGES"] == "en_US.UTF-8"
+    assert env["LC_CTYPE"] == "en_US.UTF-8"
+
+    assert apply_language_preference(
+        "system", environ=env, system_env=system_env, locale_probe=available
+    ) == "system"
+    assert env["LANGUAGE"] == "de_DE:de"
+    assert "LC_ALL" not in env
+    assert env["LC_MESSAGES"] == "de_DE.UTF-8"
+    assert env["LC_CTYPE"] == "de_DE.UTF-8"
+
+    assert apply_language_preference(
+        "invalid", environ=env, system_env=system_env, locale_probe=available
+    ) == "system"
+
+
+def test_apply_language_preference_drops_inherited_lc_all():
+    from waydroid_helper.config.language import apply_language_preference
+
+    system_env = {"LANGUAGE": None, "LC_ALL": "C", "LC_MESSAGES": None, "LC_CTYPE": None}
+    env = {"LC_ALL": "C"}
+
+    apply_language_preference(
+        "zh_CN", environ=env, system_env=system_env, locale_probe=lambda name: True
+    )
+
+    assert "LC_ALL" not in env
+
+
+def test_apply_language_preference_falls_back_when_locale_is_unavailable():
+    from waydroid_helper.config.language import apply_language_preference
+
+    system_env = {
+        "LANGUAGE": None,
+        "LC_ALL": None,
+        "LC_MESSAGES": "en_US.UTF-8",
+        "LC_CTYPE": "en_US.UTF-8",
+    }
+    env = {"LC_MESSAGES": "en_US.UTF-8", "LC_CTYPE": "en_US.UTF-8"}
+
+    def probe(name: str) -> bool:
+        return name != "zh_CN.UTF-8"
+
+    assert apply_language_preference(
+        "zh_CN", environ=env, system_env=system_env, locale_probe=probe
+    ) == "zh_CN"
+    assert env["LANGUAGE"] == "zh_CN"
+    assert env["LC_MESSAGES"] == "en_US.UTF-8"
+    assert env["LC_CTYPE"] == "C.UTF-8"

@@ -13,6 +13,14 @@
     <key name="is-fullscreen" type="b">
       <default>false</default>
     </key>
+    <key name="language" type="s">
+      <default>'system'</default>
+      <choices>
+        <choice value="system"/>
+        <choice value="zh_CN"/>
+        <choice value="en_US"/>
+      </choices>
+    </key>
     <key name="key-mapping-config-migrated" type="b">
       <default>false</default>
       <summary>Whether the legacy key mapping window configuration was migrated</summary>

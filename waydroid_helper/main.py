@@ -2,6 +2,7 @@
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk
 from gi.events import GLibEventLoopPolicy
+from gettext import gettext as _
 import sys
 import os
 import asyncio
@@ -12,6 +13,81 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
+from waydroid_helper.compat_widget import Dialog
+from waydroid_helper.config.language import (
+    LANGUAGE_CHOICES,
+    apply_language_preference,
+    load_saved_language_preference,
+)
+
+
+class PreferencesDialog(Dialog):
+    """Application preferences dialog for language selection."""
+
+    def __init__(self, parent: Gtk.Window | None, settings: Gio.Settings):
+        from waydroid_helper.compat_widget import HeaderBar, ToolbarView
+
+        super().__init__(
+            title=_("Preferences"),
+            parent=parent,
+            content_width=460,
+            content_height=240,
+        )
+        self._settings = settings
+        self._updating = False
+
+        toolbar_view = ToolbarView.new()
+        header_bar = HeaderBar()
+        toolbar_view.add_top_bar(header_bar)
+
+        page = Adw.PreferencesPage.new()
+        group = Adw.PreferencesGroup.new()
+        group.set_title(_("General"))
+
+        self.language_row = Adw.ComboRow.new()
+        self.language_row.set_title(_("Language"))
+        self.language_row.set_subtitle(
+            _("Restart the application to apply language changes")
+        )
+        model = Gtk.StringList.new(
+            strings=[
+                _("System Default"),
+                _("Simplified Chinese"),
+                _("English"),
+            ]
+        )
+        self.language_row.set_model(model)
+        self._sync_selected_language()
+        self.language_row.connect("notify::selected", self._on_language_selected)
+
+        group.add(self.language_row)
+        page.add(group)
+        toolbar_view.set_content(page)
+        self.set_content(toolbar_view)
+
+    def _sync_selected_language(self) -> None:
+        current = self._settings.get_string("language")
+        try:
+            index = LANGUAGE_CHOICES.index(current)
+        except ValueError:
+            index = 0
+        self._updating = True
+        try:
+            self.language_row.set_selected(index)
+        finally:
+            self._updating = False
+
+    def _on_language_selected(self, row: Adw.ComboRow, _pspec) -> None:
+        if self._updating:
+            return
+        selected = row.get_selected()
+        if 0 <= selected < len(LANGUAGE_CHOICES):
+            lang = LANGUAGE_CHOICES[selected]
+            self._settings.set_string("language", lang)
+            apply_language_preference(lang)
+
+
+load_saved_language_preference()
 
 Adw.init()
 
@@ -67,9 +143,9 @@ class WaydroidHelperApplication(Adw.Application):
                 win.close()
 
             dialog = MessageDialog(
-                parent=win, heading="Error", body="Cannot run as root user!"
+                parent=win, heading=_("Error"), body=_("Cannot run as root user!")
             )
-            dialog.add_response(Gtk.ResponseType.OK, "OK")
+            dialog.add_response(Gtk.ResponseType.OK, _("OK"))
             dialog.connect(  # pyright: ignore[reportUnknownMemberType]
                 "response", dialog_response
             )
@@ -101,7 +177,11 @@ class WaydroidHelperApplication(Adw.Application):
 
     def on_preferences_action(self, widget: Gtk.Widget, _: GObject.Object):
         """Callback for the app.preferences action."""
-        self.logger.info("app.preferences action activated")
+        if self.logger:
+            self.logger.info("app.preferences action activated")
+        settings = Gio.Settings(schema_id="com.jaoushingan.WaydroidHelper")
+        dialog = PreferencesDialog(self.props.active_window, settings)
+        dialog.present()
 
     def create_action(
         self,
@@ -190,6 +270,7 @@ class WaydroidHelperApplication(Adw.Application):
 
 def main(version: str):
     """The application's entry point."""
+    load_saved_language_preference()
     asyncio.set_event_loop_policy(
         GLibEventLoopPolicy()  # pyright:ignore[reportUnknownArgumentType]
     )
