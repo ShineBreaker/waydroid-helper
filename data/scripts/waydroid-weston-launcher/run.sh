@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Launch Waydroid with Weston
 # Launch Waydroid in a custom Weston window with configurable dimensions

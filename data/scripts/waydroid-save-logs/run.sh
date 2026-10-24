@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Save Waydroid Logs
 # Capture and save Waydroid system logs to a file for debugging

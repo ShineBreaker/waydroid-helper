@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Toggle Waydroid App Icons
 # Show or hide Waydroid application icons from the desktop launcher

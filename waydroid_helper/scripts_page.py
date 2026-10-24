@@ -7,6 +7,7 @@
 from gettext import gettext as _
 import os
 import json
+import shutil
 import stat
 from pathlib import Path
 from typing import Any
@@ -304,7 +305,8 @@ class TerminalWidget(Gtk.Box):
     def run_command(self, command: str):
         completion_msg = _("Script execution completed. You can close this window.")
         full_command = f"clear; {command}; echo '{completion_msg}'; exit"
-        shell = os.environ.get("SHELL", "/bin/bash")
+        # Guix 等发行版没有 /bin/bash；fallback 用 POSIX 保证存在的 /bin/sh
+        shell = os.environ.get("SHELL", shutil.which("bash") or "/bin/sh")
 
         env_vars = os.environ.copy()
         env_vars["PATH"] = f"/usr/bin:/bin:{os.environ.get('PATH','')}"
