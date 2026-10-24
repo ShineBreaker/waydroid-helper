@@ -6,7 +6,7 @@
       <object class="AdwPreferencesPage">
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Waydroid Prop Options</property>
+            <property name="title" translatable="true">Waydroid Prop Options</property>
             <property name="description" translatable="true">Effective only while Waydroid session is running. Some settings require restarting the Waydroid session to apply</property>
             <property name="header-suffix">reset_persist_prop_btn</property>
             <child>
@@ -199,7 +199,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Waydroid Privileged Options</property><!-- <property name="header-suffix">header_suffix</property> -->
+            <property name="title" translatable="true">Waydroid Privileged Options</property><!-- <property name="header-suffix">header_suffix</property> -->
             <property name="header-suffix">reset_privileged_prop_btn</property>
             <child>
               <object class="AdwActionRow">
@@ -227,7 +227,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Waydroid Configuration</property>
+            <property name="title" translatable="true">Waydroid Configuration</property>
             <property name="description" translatable="true">Configuration options for Waydroid itself. Changes require restarting Waydroid to take effect</property>
             <property name="header-suffix">reset_waydroid_prop_btn</property>
             <child>

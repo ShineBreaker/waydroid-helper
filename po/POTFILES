@@ -30,6 +30,7 @@ waydroid_helper/util/arch.py
 waydroid_helper/util/state_waiter.py
 waydroid_helper/util/__init__.py
 waydroid_helper/config/file_manager.py
+waydroid_helper/config/language.py
 waydroid_helper/config/models.py
 waydroid_helper/config/__init__.py
 waydroid_helper/tools/extensions_manager.py
@@ -53,7 +54,17 @@ waydroid_helper/controller/__init__.py
 waydroid_helper/controller/android/__init__.py
 waydroid_helper/controller/android/input.py
 waydroid_helper/controller/android/keycodes.py
+waydroid_helper/controller/app/input_event_factory.py
+waydroid_helper/controller/app/mode_controller.py
+waydroid_helper/controller/app/scrcpy_lifecycle.py
+waydroid_helper/controller/app/widget_capabilities.py
+waydroid_helper/controller/app/widget_layout_key_codec.py
+waydroid_helper/controller/app/widget_layout_service.py
+waydroid_helper/controller/app/widget_mapping_registrar.py
+waydroid_helper/controller/app/widget_settings_popover.py
+waydroid_helper/controller/app/widget_transparency_controller.py
 waydroid_helper/controller/app/window.py
+waydroid_helper/controller/app/window_input_router.py
 waydroid_helper/controller/app/workspace_manager.py
 waydroid_helper/controller/core/__init__.py
 waydroid_helper/controller/core/constants.py
@@ -69,6 +80,7 @@ waydroid_helper/controller/core/handler/mapping/__init__.py
 waydroid_helper/controller/core/handler/mapping/key_mapping_event_handler.py
 waydroid_helper/controller/core/handler/mapping/key_mapping_manager.py
 waydroid_helper/controller/core/key_system.py
+waydroid_helper/controller/core/runtime.py
 waydroid_helper/controller/core/server.py
 waydroid_helper/controller/core/types.py
 waydroid_helper/controller/core/utils.py
@@ -76,12 +88,20 @@ waydroid_helper/controller/platform/__init__.py
 waydroid_helper/controller/platform/base.py
 waydroid_helper/controller/platform/wayland/__init__.py
 waydroid_helper/controller/platform/wayland/platform.py
+waydroid_helper/controller/platform/x11/__init__.py
+waydroid_helper/controller/platform/x11/platform.py
 waydroid_helper/controller/ui/__init__.py
+waydroid_helper/controller/ui/layout_file_actions.py
 waydroid_helper/controller/ui/menus.py
 waydroid_helper/controller/ui/styles.py
 waydroid_helper/controller/widgets/__init__.py
 waydroid_helper/controller/widgets/base/__init__.py
 waydroid_helper/controller/widgets/base/base_widget.py
+waydroid_helper/controller/widgets/base/decorator_contracts.py
+waydroid_helper/controller/widgets/base/draw_overlay.py
+waydroid_helper/controller/widgets/base/edit_controls.py
+waydroid_helper/controller/widgets/base/edit_interaction.py
+waydroid_helper/controller/widgets/base/mode_layout.py
 waydroid_helper/controller/widgets/components/__init__.py
 waydroid_helper/controller/widgets/components/aim.py
 waydroid_helper/controller/widgets/components/cancel_casting.py
@@ -95,7 +115,10 @@ waydroid_helper/controller/widgets/components/skill_casting.py
 waydroid_helper/controller/widgets/decorators/__init__.py
 waydroid_helper/controller/widgets/decorators/base_decorator.py
 waydroid_helper/controller/widgets/decorators/editable.py
+waydroid_helper/controller/widgets/decorators/editable_mapping.py
+waydroid_helper/controller/widgets/decorators/editable_session.py
 waydroid_helper/controller/widgets/decorators/resizable.py
+waydroid_helper/controller/widgets/decorators/resize_geometry.py
 waydroid_helper/controller/widgets/factory.py
 waydroid_helper/controller/widgets/config.py
 

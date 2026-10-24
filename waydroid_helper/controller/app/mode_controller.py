@@ -43,14 +43,16 @@ class ModeController:
 
         if new_mode == self.MAPPING_MODE:
             self.clear_selections()
-            self.notify(_("Mapping Mode (F1: Switch Mode)"))
-            self.window.set_title(f"{APP_TITLE} - Mapping Mode (F1: Switch Mode)")
+            mode_text = _("Mapping Mode (F1: Switch Mode)")
+            self.notify(mode_text)
+            self.window.set_title(f"{APP_TITLE} - {mode_text}")
             self.window.set_cursor_from_name("default")
             return
 
         self.restore_widget_opacity()
-        self.notify(_("Edit Mode (F1: Switch Mode)"))
-        self.window.set_title(f"{APP_TITLE} - Edit Mode (F1: Switch Mode)")
+        mode_text = _("Edit Mode (F1: Switch Mode)")
+        self.notify(mode_text)
+        self.window.set_title(f"{APP_TITLE} - {mode_text}")
         self.event_bus.emit(Event(EventType.EXIT_STARING, self.window, None))
 
     def toggle(self, current_mode: str) -> str:

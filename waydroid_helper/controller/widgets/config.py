@@ -7,6 +7,7 @@ Widget Configuration System
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from gettext import gettext as _
 from typing import Any, Callable
 
 import gi
@@ -524,7 +525,7 @@ class ConfigPanelBuilder:
 
     def create_panel(self, parent: Gtk.Widget | None = None) -> Gtk.Widget:
         if not self._configs:
-            return Gtk.Label(label="No configuration available")
+            return Gtk.Label(label=_("No configuration available"))
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)
         main_box.set_margin_top(10)

@@ -348,7 +348,8 @@ class TerminalWindow(Dialog):
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         
         self.header_bar = HeaderBar()
-        title_label = Gtk.Label(label=f"Terminal - {script_name}")
+        window_title = _("Terminal - {script_name}").format(script_name=script_name)
+        title_label = Gtk.Label(label=window_title)
         self.header_bar.set_title_widget(title_label)
         
         main_box.append(self.header_bar)
@@ -357,7 +358,7 @@ class TerminalWindow(Dialog):
         main_box.append(self.terminal_widget)
         
         super().__init__(
-            title=f"Terminal - {script_name}",
+            title=window_title,
             content_widget=main_box,
             parent=parent_window,
             modal=True,
@@ -465,14 +466,14 @@ class ScriptsPage(Gtk.Box):
         try:
             script_info = script_item.script_info
             
-            info_text = f"Script: {script_info.name}\n"
-            info_text += f"Description: {script_info.description}\n"
-            info_text += f"Author: {script_info.author}\n"
-            info_text += f"Entry File: {script_info.entry_file}\n"
-            info_text += f"Script Directory: {script_info.script_dir}\n"
+            info_text = _("Script: {name}\n").format(name=script_info.name)
+            info_text += _("Description: {description}\n").format(description=script_info.description)
+            info_text += _("Author: {author}\n").format(author=script_info.author)
+            info_text += _("Entry File: {entry_file}\n").format(entry_file=script_info.entry_file)
+            info_text += _("Script Directory: {script_dir}\n").format(script_dir=script_info.script_dir)
             
             if script_info.command:
-                info_text += f"Command: {script_info.command}\n"
+                info_text += _("Command: {command}\n").format(command=script_info.command)
             
             dialog = MessageDialog(
                 heading=_("Script Information"),

@@ -356,7 +356,7 @@ class GSFIDRetrieverDialog(dialog.Dialog):
                 body=_("GSF ID copied to clipboard!"),
                 parent=self.get_root(),
             )
-            dialog.add_response(Gtk.ResponseType.OK, "OK")
+            dialog.add_response(Gtk.ResponseType.OK, _("OK"))
             dialog.set_default_response(Gtk.ResponseType.OK)
             dialog.present()
 
@@ -401,7 +401,7 @@ class GSFIDRetrieverDialog(dialog.Dialog):
                 body=_("Package data cleared successfully! Please wait for a while before using Google services."),
                 parent=self.get_root(),
             )
-            dialog.add_response(Gtk.ResponseType.OK, "OK")
+            dialog.add_response(Gtk.ResponseType.OK, _("OK"))
             dialog.set_default_response(Gtk.ResponseType.OK)
             dialog.present()
             
@@ -418,7 +418,7 @@ class GSFIDRetrieverDialog(dialog.Dialog):
                 body=_("Failed to clear package data: {error}").format(error=str(e)),
                 parent=self.get_root(),
             )
-            dialog.add_response(Gtk.ResponseType.OK, "OK")
+            dialog.add_response(Gtk.ResponseType.OK, _("OK"))
             dialog.set_default_response(Gtk.ResponseType.OK)
             dialog.present()
         finally:
