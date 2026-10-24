@@ -1,0 +1,80 @@
+name: Sync Upstream
+
+# 定期同步上游 waydroid-helper/waydroid-helper 的 main 到本 fork：
+# - 无新提交：直接结束
+# - 可干净合并：merge 后推送 origin/main
+# - 冲突：开 issue 提醒手动处理
+# 注意: 若希望同步推送能触发 obs.yml 等 push 类 workflow，
+# 需将 secrets.UPSTREAM_SYNC_TOKEN 配置为 PAT（GITHUB_TOKEN 不触发下游 workflow）。
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 每日 18:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: waydroid-helper/waydroid-helper
+  UPSTREAM_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: git remote add upstream "https://github.com/${UPSTREAM_REPO}.git" && git fetch upstream
+
+      - name: Check for new upstream commits
+        id: check
+        run: |
+          count=$(git rev-list --count main..upstream/${UPSTREAM_BRANCH})
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "new upstream commits: $count"
+
+      - name: Merge upstream
+        if: steps.check.outputs.count != '0'
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git merge "upstream/${UPSTREAM_BRANCH}" --no-edit; then
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            git merge --abort
+            exit 0
+          fi
+          echo "conflict=false" >> "$GITHUB_OUTPUT"
+
+      - name: Push to origin main
+        if: steps.merge.outputs.conflict == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: git push origin main
+
+      - name: Open issue on conflict
+        if: steps.merge.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Upstream sync failed: merge conflict" \
+            --body "自动同步 ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} 时发生合并冲突，请手动处理：
+
+            \`\`\`bash
+            git fetch upstream
+            git merge upstream/${UPSTREAM_BRANCH}
+            # 解决冲突后推送
+            \`\`\`" \
+            --label "upstream-sync"

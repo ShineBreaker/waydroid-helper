@@ -1,0 +1,64 @@
+name: Auto Release
+
+# main 分支版本号（meson.build version）高于最新 tag 时自动发版：
+# 创建 tag 并通过 workflow_dispatch 调起 release.yml 构建 AppImage。
+# （GITHUB_TOKEN 触发 workflow_dispatch 属文档明确例外，不会递归；tag 直接创建 ref，
+#  push tag 事件因 GITHUB_TOKEN 不触发下游 workflow，所以靠 dispatch 显式调起。）
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare version with latest tag
+        id: ver
+        run: |
+          version=$(sed -n "s/^\s*version: '\([^']*\)'.*/\1/p" meson.build | head -1)
+          [ -n "$version" ] || { echo "meson.build 里没解析到 version" >&2; exit 1; }
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "tag $tag 已存在，跳过发版"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            latest=$(git tag --list 'v*' --sort=-v:refname | head -1)
+            newer=$(printf '%s\n%s\n' "$latest" "$tag" | sort -V | tail -1)
+            if [ "$newer" = "$tag" ]; then
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "tag $tag 不高于最新 tag $latest，跳过"
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Create tag and trigger release build
+        if: steps.ver.outputs.should_release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          # 创建 tag ref（已存在则忽略）；再 dispatch release.yml 走既有构建矩阵
+          gh api \
+            --method POST /repos/{owner}/{repo}/git/refs \
+            -f ref="refs/tags/$TAG" \
+            -f sha="$GITHUB_SHA" --silent \
+            || echo "tag 已存在，继续"
+          gh workflow run release.yml --ref main -f tag_name="$TAG"
+          echo "已触发 release.yml 构建 $TAG"
