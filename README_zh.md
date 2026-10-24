@@ -2,18 +2,18 @@
 
 **语言**: [English](README.md) | [中文](README_zh.md) | [Русский](README_ru.md)
 
-Waydroid Helper 是一个使用 Python 和 PyGObject 编写的图形用户界面应用程序。它提供了一种用户友好的方式来配置 Waydroid 并安装扩展，包括 Magisk 和 ARM 兼容层。
+Waydroid Helper 是一个基于 Python 和 PyGObject 的图形界面工具，用于配置 Waydroid、管理按键映射以及安装 Magisk 和 ARM 转译层等扩展。
 
 ## 功能特性
 
-- 配置 Waydroid 设置
-- **按键映射系统**：为 Android 应用和游戏提供键盘和鼠标映射
-  - 多种控制组件（按钮、方向键盘、瞄准控制、宏）
-  - 可自定义的按键绑定和布局
-  - 支持复杂的游戏场景（FPS、MOBA）
-  - 查看[按键映射指南](docs/KEY_MAPPING_zh.md)获取详细说明
+- 配置 Waydroid 属性与共享文件夹
+- **按键映射。** 为 Android 应用和游戏映射键盘与鼠标操作：
+  - 提供单击、连击、方向键、准星、开火、技能施法、右键行走与宏按键组件
+  - 支持自定义按键绑定及布局导入导出
+  - 详细用法见[按键映射指南](docs/KEY_MAPPING_zh.md)
 - 为 Waydroid 安装扩展
-  - [Magisk](https://github.com/HuskyDG/magisk-files/)
+  - [Magisk](https://github.com/topjohnwu/Magisk)
+  - ~~[Magisk](https://github.com/HuskyDG/magisk-files/)~~
   - [libhoudini](https://github.com/supremegamers/vendor_intel_proprietary_houdini)
   - [libndk](https://github.com/supremegamers/vendor_google_proprietary_ndk_translation-prebuilt)
   - [OpenGapps](https://sourceforge.net/projects/opengapps/)
@@ -174,25 +174,25 @@ sudo apt install waydroid-helper
 
 ## 截图
 
-![image-20241125011305536](assets/img/README/1_en.png)
+![image-20241125011305536](assets/img/README/1_zh.png)
 
-![](./assets/img/README/2_en.png)
-![](./assets/img/README/3_en.png)
+![](./assets/img/README/2_cn.png)
+![](./assets/img/README/3_cn.png)
 
 ## 文档
 
-- **[按键映射指南](docs/KEY_MAPPING_zh.md)**：使用按键映射系统通过键盘和鼠标控制 Android 应用和游戏的综合指南
+- [按键映射指南](docs/KEY_MAPPING_zh.md)介绍了如何使用键盘和鼠标控制 Android 应用与游戏。
 
 ## 故障排除
 
 ### 共享文件夹不工作
-启用 systemd 服务
+启用 systemd 服务：
 ```
 systemctl --user enable waydroid-monitor.service --now
 sudo systemctl enable waydroid-mount.service --now
 ```
 
-对于 AppImage 用户，您需要手动将 D-Bus 配置文件和 systemd 单元文件复制到各自的系统位置以启用正确的功能。建议的文件结构如下：
+对于 AppImage 用户，需要将 D-Bus 配置文件和 systemd 单元文件复制到对应的系统目录：
 
 ```
 usr
@@ -210,13 +210,23 @@ usr
     │       └── id.waydro.Mount.service
 
 ```
-### 安装 microg 或 gapps 后 waydroid 无法启动
-如果在安装 microg 或 gapps 后遇到 waydroid 无法启动的问题，请尝试以下解决方案：
+### 安装 MicroG 或 GApps 后 Waydroid 无法启动
+如果安装 MicroG 或 GApps 后 Waydroid 无法启动：
 
-1. **确保使用 vanilla 镜像**：确认您正在使用 vanilla 的 image 而不是 gapps 版本
-2. **完全重置数据**：如果上述方法仍然无法解决问题，请完全清除 `~/.local/share/waydroid/data` 目录，然后重新执行 `sudo waydroid init -f`. **注意**：此操作将删除所有 waydroid 数据，请确保已备份重要信息。
+1. **使用 vanilla 镜像。** 确认 Waydroid 使用的是 vanilla 系统镜像，而非自带 GApps 的镜像。
+2. **重置 Waydroid 数据。** 若问题仍未解决，删除 `~/.local/share/waydroid/data` 目录后重新执行 `sudo waydroid init -f`。该操作会清空所有 Waydroid 用户数据，请提前备份文件。
 
+### ZygiskNext / ReZygisk 不工作
+
+ZygiskNext 和 ReZygisk 依赖通过 `reboot` kprobe 钩子挂载的内核侧 IOCTL 接口 SuperCall。Waydroid 默认的 seccomp 配置拦截了 `reboot` 系统调用，导致 SuperCall 无法初始化。
+
+从 Waydroid seccomp 配置中移除 `reboot` 规则并更新配置：
+
+```
+sudo sed -i '/reboot/d' /usr/lib/waydroid/data/configs/waydroid.seccomp
+sudo waydroid upgrade -o
+```
 
 ## 致谢
 
-特别感谢 [scrcpy](https://github.com/Genymobile/scrcpy) 项目。本项目使用了 scrcpy 的服务器组件来实现对 Waydroid 中 Android 设备的无缝控制。scrcpy 提供的强大通信协议和设备交互能力为我们的按键映射奠定了基础。
+感谢 [scrcpy](https://github.com/Genymobile/scrcpy) 项目。Waydroid Helper 使用 `scrcpy-server` 注入按键映射的输入事件。

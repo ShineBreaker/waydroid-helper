@@ -1,177 +1,155 @@
-# Key Mapping Guide for Waydroid Helper
+# Key mapping guide for Waydroid Helper
 
 ## Overview
 
-The key mapping feature in Waydroid Helper allows you to create custom keyboard and mouse controls for Android applications running in Waydroid. This powerful system enables you to map physical keyboard keys and mouse buttons to touch screen interactions, making mobile games and apps more accessible on desktop systems.
+The key mapping feature in Waydroid Helper maps physical keyboard keys and mouse buttons to touch events in Waydroid.
 
-## Getting Started
+## Getting started
 
-### Opening the Key Mapping Interface
+### Opening the key mapping interface
 
 1. Launch Waydroid Helper
-2. Navigate to the **Home** tab
-3. In the **Key Mapper** section, click the **Open** button
-4. A transparent overlay window will appear over your screen
+2. Open the **Home** tab and click the Waydroid status row to open **Instance Details**
+3. In the **Key Mapper** section, click **Open**
+4. A transparent overlay window opens over your screen
 
-### Understanding the Two Modes
+### Understanding the two modes
 
-The key mapping interface operates in two distinct modes:
+The key mapping overlay has two modes:
 
-- **Edit Mode** (Default): Used for placing, configuring, and editing control widgets
-- **Mapping Mode**: Used for actual gameplay with active key mappings
+- **Edit mode** (default). Place, resize, and configure control widgets.
+- **Mapping mode**. Send mapped keyboard and mouse inputs to the game.
 
-**Switch between modes**: Press `F1` to toggle between Edit Mode and Mapping Mode.
+Press `F1` to switch between Edit mode and Mapping mode. In Mapping mode, press `F12` to toggle widget visibility.
 
-## Setting Up Key Mappings
+## Setting up key mappings
 
-### Adding Widgets
+### Adding widgets
 
 <img src="../assets/img/KEY_MAPPING/image-20250802234629279.png" alt="image-20250802234629279" style="zoom:67%;" />
 
-1. **Ensure you're in Edit Mode** (this is the default when opening)
-2. **Right-click** on an empty area to open the widget selection panel
-3. **Select a widget type** from the menu
-4. **Position the widget** by dragging it to the desired location on your game interface
-5. **Resize if needed** by dragging the resize handles when the widget is selected
+1. Enter Edit mode
+2. Right-click an empty area to open the widget menu
+3. Select a widget type
+4. Drag the widget to the target control in the game
+5. Drag the resize handles when the widget is selected to adjust its size
 
-### Configuring Key Bindings
+### Configuring key bindings
 
-1. **Double-click** on any widget to enter key capture mode
-2. **Press the desired key(s)** you want to map to this widget
-3. The widget will display the assigned key combination
+1. Double-click a widget to enter key capture mode
+2. Press the key or mouse button you want to bind
+3. The widget displays the assigned key combination
 
-#### Supported Key Types
+#### Supported key types
 
-- **Keyboard keys**: Letters, numbers, function keys, modifiers (Ctrl, Alt, Shift)
-- **Mouse buttons**: Left, Right, Middle
-- **Key combinations**: Multiple keys pressed together (e.g., Ctrl+A, Alt+Tab)
+- **Keyboard keys.** Letters, numbers, function keys, and modifiers (Ctrl, Alt, Shift).
+- **Mouse buttons.** Left, Right, and Middle.
+- **Key combinations.** Multiple keys pressed together, such as Ctrl+A or Alt+Tab.
 
-### Advanced Widget Configuration
+### Widget settings
 
-Many widgets offer additional configurations through their setting panel:
+1. Select a widget in Edit mode
+2. Click the gear icon in the widget's bottom-right corner
+3. Adjust the widget parameters and click **OK**
 
-1. **Select a widget** in Edit Mode
-2. **Click the gear icon** in the widget's bottom-right corner
-3. Adjust parameters
+## Using key mappings
 
-## Using Your Key Mappings
+### Activating mappings for gameplay
 
-### Activating Mappings for Gameplay
+1. Press `F1` to switch to Mapping mode
+2. Position the game window behind the transparent overlay
+3. Use your configured keys to control the game
+4. Press `F1` anytime to return to Edit mode
 
-1. **Switch to Mapping Mode** by pressing `F1`
-2. **Position your game window** behind the transparent overlay
-3. **Use your configured keys** to control the game
-4. The overlay will show minimal visual indicators during gameplay
+## Available control widgets
 
-### Tips for Effective Usage
-
-- Position widgets precisely over the corresponding game controls
-- Use the resize handles to match widget sizes with in-game elements
-- Switch back to Edit Mode (`F1`) anytime you need to make adjustments
-
-## Available Control Widgets
-
-### 1. Single Click
+### 1. Single click
 
 ![image-20250802223254952](../assets/img/KEY_MAPPING/image-20250802223254952.png)
 
-Maps a key/mouse button to a single tap at a specific screen location. Triggered when the physical button is pressed, release when it is released
+Maps a key or mouse button to a single tap at a screen location. Pressing the key touches down, and releasing the key lifts the touch.
 
-- **Use Case**: Menu buttons, simple interactions
-- **Configuration**: Position the widget over the target area and assign a key
+- **Use case.** Menu buttons and basic taps.
+- **Configuration.** Position the widget over the target area and bind a key.
 
-### 2. Repeated Click
+### 2. Repeated click
 
 ![image-20250802225228249](../assets/img/KEY_MAPPING/image-20250802225228249.png)
 
-Automated rapid clicking
+Simulates rapid taps at a fixed position.
 
-- **Use Case**: Auto-attack, rapid-fire actions
-- **Operating Modes**:
-  - **Long-press combo**: Continuous clicking while key is held
-  - **Click after button**: Fixed number of clicks after click
-- **Configuration**: Adjustable click rate and count
+- **Use case.** Auto-attack and rapid-fire actions.
+- **Operating methods.**
+  - **Long-press combo.** Taps continuously while the key is held, using **Number of clicks per second**.
+  - **Click after button.** Performs a fixed **Number of clicks** after the key is pressed.
 
 ### 3. Aim
 
 ![image-20250802225148255](../assets/img/KEY_MAPPING/image-20250802225148255.png)
 
-It is commonly used in FPS games. Adding it to the game can drag the position of the viewing angle, and cooperate with the fire button to realize the use of the mouse to move the viewing angle and aim and shoot. After adding, please drag the rectangular box to adjust the effective range of the viewing angle rotation, which needs to correspond to the effective range that can trigger the operation viewing angle rotation in the game.
+Locks the mouse pointer and converts mouse movement into touch dragging for camera rotation in FPS games. Resize the rectangular box to match the in-game look area.
 
-- **Use Case**: Camera control and aiming
-- **Special Features**: 
-  - Works with Fire button for complete FPS control
-- **Configuration**: Sensitivity
+- **Use case.** Camera rotation and aiming in FPS games.
+- **Configuration.** Adjust **Sensitivity** (1 to 100).
 
-### 4. **Attack/fire**
+### 4. Fire
 
 ![image-20250802224603813](../assets/img/KEY_MAPPING/image-20250802224603813.png)
 
-Commonly used in FPS games, add a button to the position of the attack/fire button, and use the left button of the mouse to click, and it needs to be used with the aim button.
+Places a fire button for FPS games that activates while the Aim widget is active.
 
-- **Use Case**: FPS games
-- **Default Key**: Left Mouse Button
-- **Special Feature**: 
-  - Automatically activates when Aim widget is triggered
-  - The key binding cannot be modified
+- **Use case.** Shooting in FPS games when paired with the Aim widget.
+- **Configuration.**
+  - **Mouse button.** Choose **Left Button** or **Right Button**.
+  - **Enable drag shot.** Let Fire take over pointer lock while firing so mouse movement drags the fire touch point.
+  - **Horizontal sensitivity** and **Vertical sensitivity.** Adjust drag-shot movement speed on each axis.
 
-### 5. Directional Pad (D-Pad)
+### 5. Directional pad
 
 ![image-20250802225040921](../assets/img/KEY_MAPPING/image-20250802225040921.png)
 
-Drag and position it on the virtual d-pad to control movement direction. After adding the button, drag the dotted border to resize it. Make sure the blue frame of the d-pad button matches the size of the in-game  virtual d-pad.
+Maps four directional keys (default W, A, S, D) to an in-game movement joystick. Drag the dotted border so the blue circle matches the size of the in-game joystick.
 
-- **Use Case**: Character movement in games
-- **Default Keys**: W (up), A (left), S (down), D (right)
-- **Configuration**: 
-  - Operation Modes:
-    - **Slide control:** Simulates sliding from the center of the d-pad to trigger the movement
-    - **Click control**
+- **Use case.** Character movement.
+- **Default keys.** W (up), A (left), S (down), D (right).
+- **Configuration.**
+  - **Slide control.** Slides from the center of the pad toward the target direction.
+  - **Click control.** Taps the directional point directly.
 
-
-
-### 6. Skill Casting
+### 6. Skill casting
 
 ![image-20250802225814744](../assets/img/KEY_MAPPING/image-20250802225814744.png)
 
-Commonly used when using the characters' skills, click and cooperate with the mouse to release skills. Drag the dotted frame to resize the Skill Casting button to match the virtual skill button range.
+Maps a skill button and aims the skill toward the mouse cursor using perspective projection. Resize the dotted frame to match the in-game skill joystick.
 
-- **Purpose**: Advanced skill targeting with mouse control
-- **Use Case**: MOBA games
-- **Configuration**
-  - **Casting radius:** Fine-tune according to the casting range
-  - **Casting timing**
-    - On Release:  press and hold the button, release the button to cast
-    - Immediate: press the button to cast immediately
-    - Manual: Click once to simulate holding down the casting button, then click the button again to cast
+- **Use case.** Directional skills in MOBA and action games.
+- **Configuration.**
+  - **Casting radius.** Set the ground-circle radius in world space.
+  - **Camera tilt** and **Vertical FOV.** Match the game camera's tilt angle and field of view for perspective mapping.
+  - **Origin X** and **Origin Y.** Set the character's ground origin position on screen (0% to 100%).
+  - **Cast timing.** Choose **On Release** (cast when releasing the key), **Immediate** (cast right after moving to the target), or **Manual** (press once to aim, press again to cast).
+  - **Enable cancel button.** Create a **Cancel Casting** widget. Drag it over the in-game cancel area and hold its key while aiming to cancel a skill.
 
-  - **Cancel casting:** When enabled, a "cancel casting" button will be generated, drag the button to the cancel casting position. While casting a spell, hold down the cancel cast button to cancel the cast.
-
-
-
-
-### 7. Right Click to Walk
+### 7. Right click to walk
 
 ![image-20250802231156125](../assets/img/KEY_MAPPING/image-20250802231156125.png)
 
-Move it to the game's virtual joystick, use the mouse to control movement direction, and right-click on the screen to move to the specified location.
+Place this widget over the game's movement wheel. Hold and drag to steer, or click to walk toward the cursor position.
 
-- **Use Case**: MOBA games
-- **Default Keys**:  Right  Mouse Button
+- **Use case.** Movement in MOBA games.
+- **Default key.** Right mouse button.
 
-### 8. Macro Button
+### 8. Macro
 
-After adding a macro key, click the gear icon in its bottom-right corner to enter the settings interface.
+After adding a Macro widget, click the gear icon in its bottom-right corner to open the command editor.
 
-- Supports common keyboard shortcuts for editing operations, such as Ctrl+A (Select All), Ctrl+V (Paste), Ctrl+X (Cut), Ctrl+Z (Undo), Ctrl+Y (Redo), etc.
-- All commands must be in lowercase.
-- When you click on the screen, the coordinates of the click will be automatically inserted into the textarea.
+- Supports standard editing shortcuts such as Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z, and Ctrl+Y.
+- Write all commands in lowercase.
+- Clicking anywhere on the overlay while the settings panel is open inserts the clicked `x,y` coordinates into the editor.
 
-#### Trigger Timing Comman
+#### Trigger timing command
 
-**release_actions:** Each key operation has two states: **pressed (↓)** and **released (↑)**. A **holding state** can be achieved by combining these two states with proper commands.
-
-By default, when a macro key is executed, commands trigger immediately upon key press. If certain commands need to trigger upon key release, add the **release_actions** command before those commands.
+`release_actions` separates press commands from release commands. Commands before `release_actions` run when the macro key is pressed, and commands after `release_actions` run when the macro key is released.
 
 Example:
 
@@ -183,67 +161,56 @@ release_actions
 release 0,0
 ```
 
-#### Single click Command
+#### Single click command
 
-**click x1,y1 x2,y2...:** Click on coordinate points. Supports single-location clicks or simultaneous multi-touch by clicking multiple locations at once. Supports coordinate variables such as `mouse`. 
-
-**Note:** For single click commands, the duration from press to release is fixed.
+`click x1,y1 x2,y2...` taps one or more coordinates at the same time. You can pass `mouse` to use the current cursor position.
 
 Example:
 
 ```
-# Simultaneously click coordinates (0,0), (1,1), and current mouse position
-## Wait 100ms, then click (2,2)
+# Click coordinates (0,0), (1,1), and current mouse position
+# Wait 100ms, then click (2,2)
 click 0,0 1,1 mouse
 sleep 100
 click 2,2
 ```
 
-#### Hold and Release Commands
+#### Hold, release, and toggle commands
 
-**press x1,y1 x2,y2...:** Press and hold coordinate points. Supports holding a single position or multiple positions simultaneously.
-
-**release x1,y1 x2,y2...:** Release the hold state of coordinate points. Supports releasing one or multiple positions.
-
-**switch x1,y1 x2,y2...:** Toggle between [Hold] and [Release] states for specified coordinate points.
-
-All three commands above support coordinate variables such as `mouse`.
+- `press x1,y1 x2,y2...` holds one or more coordinates (`mouse` is supported).
+- `release x1,y1 x2,y2...` releases one or more held coordinates.
+- `switch x1,y1 x2,y2...` toggles between hold and release states at the given coordinates.
+- `key_press key1,key2...` triggers the press action of keys bound to other widgets.
+- `key_release key1,key2...` triggers the release action of keys bound to other widgets.
+- `key_switch key1,key2...` toggles the pressed and released state of keys bound to other widgets.
+- `toggle_group group1 | group2` alternates between two command groups on each trigger (use `;` to separate commands inside a group).
+- `release_all` releases all currently pressed keys and active macro commands.
 
 Examples:
 
 ```
-# Press and hold (0,0) and (1,1) simultaneously, then release when macro key is released
+# Hold (0,0) and (1,1), then release when the macro key is released
 press 0,0 1,1
 release_actions
 release 0,0 1,1
 
-# Toggle (0,0) touch state - switches state each time the macro key is pressed
+# Toggle touch state at (0,0) on each press
 switch 0,0
 ```
 
-**key_press a:** Simulate pressing a keyboard key.
-
-**key_release a:** Simulate releasing a keyboard key.
-
-**key_switch a:** Toggle the pressed/released state of a keyboard key.
-
-The above three commands can call other keys nested within them (these keys must already be bound to widgets). Macro keys can also call other macro keys.
-
-Examples:
-
 ```
-# Simulate pressing [A] when macro key is held, release [A] when macro key is released
+# Trigger widget bound to [A] while held, release when macro key is released
 key_press a
 release_actions
 key_release a
 
-# Toggle [A] key state with each macro key press
+# Toggle [A] key state on each press
 key_switch a
 ```
 
-#### Wait Command
+#### Wait command
 
-**sleep duration:** Waits for a specified period of time before continuing execution.
+`sleep duration` pauses macro execution for `duration` milliseconds.
 
 Example:
 
@@ -254,30 +221,23 @@ sleep 1000
 click 1,1
 ```
 
-#### Aim Command
+#### Aim mode commands
 
-Achieves a Genshin Impact PC-like effect where holding a key unlocks the mouse cursor, and releasing the key returns to locked mouse mode.
-
-Example:
+`enter_staring` and `exit_staring` enter or exit Aim pointer-lock mode. For example, holding a key can unlock the cursor and releasing it can re-lock the cursor:
 
 ```
 exit_staring
 release_actions
-sleep 50  
+sleep 50
 enter_staring
 ```
 
-#### D-pad Radius Toggle
+#### Directional pad radius commands
 
-Allows real-time switching of d-pad radius. In games like Sky: Children of the Light and Farlight 84, this enables toggling between walk/run speeds.
+- `swipehold_radius x` scales the directional pad slide radius to `x` times its size, which can switch between walking and running speeds.
+- `swipehold_radius_switch x` toggles the directional pad radius between `x` and `1`.
 
-**swipehold_radius x:** Adjusts the d-pad radius to x times its original size.
-
-**swipehold_radius_switch x:** Toggles the d-pad radius between x times the original size and 1x (normal size).
-
-
-
-Example:
+Examples:
 
 ```
 # Walk when pressed, run when released
@@ -287,7 +247,6 @@ swipehold_radius 1
 ```
 
 ```
-# Toggle between walking and running with each press
+# Toggle between walking and running on each press
 swipehold_radius_switch 0.5
 ```
-

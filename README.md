@@ -2,16 +2,15 @@
 
 **Language**: [English](README.md) | [中文](README_zh.md) | [Русский](README_ru.md)
 
-Waydroid Helper is a graphical user interface application written in Python using PyGObject. It provides a user-friendly way to configure Waydroid and install extensions, including Magisk and ARM translation.
+Waydroid Helper is a PyGObject application for configuring Waydroid, managing key mappings, and installing extensions such as Magisk and ARM translation.
 
 ## Features
 
-- Configure Waydroid settings
-- **Key Mapper**: Keyboard and mouse mapping for Android apps and games
-  - Multiple control widgets (buttons, directional pad, aim controls, macros)
-  - Customizable key bindings and layouts
-  - Support for complex gaming scenarios (FPS, MOBA)
-  - See the [Key Mapping Guide](docs/KEY_MAPPING.md) for detailed instructions
+- Configure Waydroid properties and shared folders
+- **Key mapper.** Keyboard and mouse mapping for Android apps and games:
+  - Control widgets for buttons, directional pad, aim, fire, skill casting, and macros
+  - Custom key bindings and savable layouts
+  - See the [Key mapping guide](docs/KEY_MAPPING.md) for instructions
 - Install extensions for Waydroid
   - [Magisk](https://github.com/topjohnwu/Magisk)
   - ~~[Magisk](https://github.com/HuskyDG/magisk-files/)~~
@@ -89,16 +88,16 @@ sudo apt update
 sudo apt install waydroid-helper
 ```
 
-### Installing from Releases
+### Installing from releases
 1. Go to the [releases](https://github.com/waydroid-helper/waydroid-helper/releases) page
-2. Download the appropriate package for your distribution
+2. Download the package for your distribution
 3. Install the package
 
-### Manual Build and Installation
+### Manual build and installation
 
-For manual installation, you'll need to install the dependencies and build the project using Meson.
+Install the dependencies and build the project with Meson.
 
-#### Arch, Manjaro and EndeavourOS based distributions
+#### Arch, Manjaro, and EndeavourOS based distributions
 1. Install dependencies:
 
     ```bash
@@ -183,18 +182,18 @@ For manual installation, you'll need to install the dependencies and build the p
 
 ## Documentation
 
-- **[Key Mapping Guide](docs/KEY_MAPPING.md)**: Comprehensive guide for using the key mapping system to control Android apps and games with keyboard and mouse
+- [Key mapping guide](docs/KEY_MAPPING.md) explains how to control Android apps and games with a keyboard and mouse.
 
 ## Troubleshooting
 
-### Shared Folders not working
-Enable systemd service
+### Shared folders not working
+Enable the systemd services:
 ```
 systemctl --user enable waydroid-monitor.service --now
 sudo systemctl enable waydroid-mount.service --now
 ```
 
-For AppImage users, you need to manually copy the D-Bus configuration files and systemd unit files to their respective system locations to enable proper functionality. Here's the suggested file structure:
+For AppImage builds, copy the D-Bus configuration files and systemd unit files to the system paths below:
 
 ```
 usr
@@ -213,18 +212,16 @@ usr
 
 ```
 ### Waydroid fails to start after installing MicroG or GApps
-If you encounter issues with waydroid not starting after installing microg or gapps, try the following solutions:
+If Waydroid fails to start after installing MicroG or GApps:
 
-1. **Ensure vanilla image usage**: Confirm that you are using a vanilla image instead of a gapps version
-2. **Complete data reset**: If the above methods still don't resolve the issue, completely remove the `~/.local/share/waydroid/data` directory and re-run `sudo waydroid init -f`. **Note**: This operation will delete all waydroid data, so please ensure you have backed up any important information.
+1. **Use a vanilla image.** Verify that Waydroid uses the vanilla system image instead of the GApps image.
+2. **Reset Waydroid data.** If the problem persists, remove `~/.local/share/waydroid/data` and run `sudo waydroid init -f`. This deletes all Waydroid user data, so back up your files first.
 
 ### ZygiskNext / ReZygisk not working
 
-In some cases, ZygiskNext or ReZygisk may fail to function inside Waydroid.
+ZygiskNext and ReZygisk use SuperCall, a kernel IOCTL interface installed through a reboot kprobe hook. Waydroid's default seccomp profile blocks the `reboot` syscall, which prevents SuperCall initialization.
 
-These modules rely on SuperCall, a kernel-side IOCTL interface installed through a reboot kprobe hook. Waydroid's default seccomp profile blocks the reboot syscall, which prevents the SuperCall interface from being initialized.
-
-Remove the reboot rule from the Waydroid seccomp configuration and then apply the change:
+Remove the `reboot` rule from the Waydroid seccomp profile and apply the change:
 
 ```
 sudo sed -i '/reboot/d' /usr/lib/waydroid/data/configs/waydroid.seccomp
@@ -233,6 +230,6 @@ sudo waydroid upgrade -o
 
 ## Credits
 
-Special thanks to the [scrcpy](https://github.com/Genymobile/scrcpy) project. This project utilizes scrcpy's server component to enable seamless control of Android devices within Waydroid. The robust communication protocol and device interaction capabilities provided by scrcpy form the foundation of our key mapping features.
+Thanks to the [scrcpy](https://github.com/Genymobile/scrcpy) project. Waydroid Helper uses `scrcpy-server` to inject input events for key mapping.
 
 
