@@ -80,6 +80,12 @@ sudo dnf copr enable cuteneko/waydroid-helper
 sudo dnf install waydroid-helper
 ```
 
+Дополнительные пакеты, необходимые для диспетчера клавиш (не объявлены в зависимостях DNF-пакета):
+
+- `vte291-gtk4`: GTK4-совместимый виджет терминала VTE (приложение использует `Vte 3.91`)
+- `python3-aiofiles` и `python3-httpx`: модули Python, отсутствующие в зависимостях DNF
+- `android-tools`: предоставляет ADB, необходим для связи диспетчера клавиш с Waydroid; без него диспетчер клавиш молча не работает
+
 ### Ubuntu
 
 ```

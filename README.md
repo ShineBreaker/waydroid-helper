@@ -79,6 +79,12 @@ sudo dnf copr enable cuteneko/waydroid-helper
 sudo dnf install waydroid-helper
 ```
 
+Additional packages required for the Key Mapper (not pulled in by the DNF package):
+
+- `vte291-gtk4`: GTK4-compatible VTE terminal widget (the app references `Vte 3.91`)
+- `python3-aiofiles` and `python3-httpx`: Python modules missing from DNF dependencies
+- `android-tools`: provides ADB, required for the Key Mapper to communicate with Waydroid; without it the Key Mapper silently fails
+
 ### Ubuntu
 
 ```

@@ -79,6 +79,12 @@ sudo dnf copr enable cuteneko/waydroid-helper
 sudo dnf install waydroid-helper
 ```
 
+按键映射器需要额外安装的包（DNF 包未声明这些依赖）：
+
+- `vte291-gtk4`：GTK4 版 VTE 终端组件（程序引用 `Vte 3.91`）
+- `python3-aiofiles` 和 `python3-httpx`：DNF 依赖中缺失的 Python 模块
+- `android-tools`：提供 ADB，按键映射器与 Waydroid 通信必需；缺少时按键映射器会静默失败
+
 ### Ubuntu
 
 ```
