@@ -2,9 +2,14 @@
 
 # /var/lib/waydroid
 # ~/.local/share/waydroid/data
-# user=$(logname)
-DATA_DIR=$(realpath "/home/$(logname)/.local/share/waydroid/data")
-VAR_DIR=$(realpath "/var/lib/waydroid")
+#
+# pkexec clears the environment, so `logname` fails there and $HOME points at
+# root's home.  Resolve the invoking user from the UID pkexec (or sudo)
+# exports, then ask the shell for that user's home directory.
+DATA_USER=$(id -un "${PKEXEC_UID:-${SUDO_UID:-$(id -u)}}")
+USER_HOME=$(eval echo "~$DATA_USER")
+DATA_DIR=$(realpath -m "$USER_HOME/.local/share/waydroid/data")
+VAR_DIR=$(realpath -m "/var/lib/waydroid")
 OVERLAY_DIR="$VAR_DIR/overlay"
 OVERLAY_RW_DIR="$VAR_DIR/overlay_rw"
 
