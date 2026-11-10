@@ -3,9 +3,14 @@ name: Sync Upstream
 # 定期同步上游 waydroid-helper/waydroid-helper 的 main 到本 fork：
 # - 无新提交：直接结束
 # - 可干净合并：merge 后推送 origin/main
-# - 冲突：开 issue 提醒手动处理
-# 注意: 若希望同步推送能触发 obs.yml 等 push 类 workflow，
-# 需将 secrets.UPSTREAM_SYNC_TOKEN 配置为 PAT（GITHUB_TOKEN 不触发下游 workflow）。
+# - fetch / 合并冲突 / 推送任一失败：job 失败，并开（或评论）issue
+# 冲突路径必须非零退出。exit 0 会让整次 job 保持绿色，失败被吞掉。
+#
+# 推送与开 issue 都优先用 secrets.UPSTREAM_SYNC_TOKEN，否则回退 GITHUB_TOKEN。
+# git push 用的是 actions/checkout 持久化的 token，而不是 GH_TOKEN 环境变量。
+# PAT 推送才能触发 obs.yml 等下游 workflow；GITHUB_TOKEN 推送不会。
+# GITHUB_TOKEN 也没有 workflow 权限，上游若改了 .github/workflows/，推送会被拒绝，
+# 需要配置具有 repo + workflow scope 的 UPSTREAM_SYNC_TOKEN。
 
 on:
   schedule:
@@ -23,58 +28,227 @@ concurrency:
 env:
   UPSTREAM_REPO: waydroid-helper/waydroid-helper
   UPSTREAM_BRANCH: main
+  GIT_TERMINAL_PROMPT: "0"
+  # 开 issue / 评论也走 PAT（若已配置）。GH_TOKEN 不会影响 git push。
+  GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+          persist-credentials: true
+          # 空 secret 在表达式里是假值，会回退到 GITHUB_TOKEN。
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Fetch upstream
-        run: git remote add upstream "https://github.com/${UPSTREAM_REPO}.git" && git fetch upstream
+        id: fetch
+        run: |
+          set -euo pipefail
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          if ! git fetch upstream 2>"${RUNNER_TEMP}/sync-fetch-error.txt"; then
+            exit 1
+          fi
+          rm -f "${RUNNER_TEMP}/sync-fetch-error.txt"
 
       - name: Check for new upstream commits
         id: check
         run: |
-          count=$(git rev-list --count main..upstream/${UPSTREAM_BRANCH})
-          echo "count=$count" >> "$GITHUB_OUTPUT"
-          echo "new upstream commits: $count"
+          set -euo pipefail
+          count="$(git rev-list --count "main..upstream/${UPSTREAM_BRANCH}")"
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+          if [ "$count" = "0" ]; then
+            echo "already up to date with upstream/${UPSTREAM_BRANCH}"
+          else
+            echo "new upstream commits: ${count}"
+          fi
 
       - name: Merge upstream
-        if: steps.check.outputs.count != '0'
         id: merge
+        if: success() && steps.check.outputs.count != '0'
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git merge "upstream/${UPSTREAM_BRANCH}" --no-edit; then
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
-            git merge --abort
-            exit 0
+          merge_log="${RUNNER_TEMP}/sync-merge-error.txt"
+          if ! git merge "upstream/${UPSTREAM_BRANCH}" --no-edit >"$merge_log" 2>&1; then
+            git diff --name-only --diff-filter=U > "${RUNNER_TEMP}/sync-conflict-files.txt" || true
+            git merge --abort || true
+            exit 1
           fi
-          echo "conflict=false" >> "$GITHUB_OUTPUT"
+          rm -f "$merge_log"
+          git diff --name-only ORIG_HEAD HEAD -- .github/workflows/ > "${RUNNER_TEMP}/sync-workflow-files.txt" || true
 
       - name: Push to origin main
-        if: steps.merge.outputs.conflict == 'false'
-        env:
-          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
-        run: git push origin main
-
-      - name: Open issue on conflict
-        if: steps.merge.outputs.conflict == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: push
+        if: success() && steps.merge.outcome == 'success'
         run: |
-          gh issue create \
-            --title "Upstream sync failed: merge conflict" \
-            --body "自动同步 ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} 时发生合并冲突，请手动处理：
+          set -euo pipefail
+          if ! git push origin main 2>"${RUNNER_TEMP}/sync-push-error.txt"; then
+            exit 1
+          fi
+          rm -f "${RUNNER_TEMP}/sync-push-error.txt"
 
-            \`\`\`bash
-            git fetch upstream
-            git merge upstream/${UPSTREAM_BRANCH}
-            # 解决冲突后推送
-            \`\`\`" \
-            --label "upstream-sync"
+      - name: Report failure
+        if: failure()
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          FETCH_OUTCOME: ${{ steps.fetch.outcome }}
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          MERGE_OUTCOME: ${{ steps.merge.outcome }}
+          PUSH_OUTCOME: ${{ steps.push.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          label="upstream-sync"
+          body_file="${RUNNER_TEMP}/sync-issue-body.md"
+
+          stage="unknown"
+          if [ "${CHECKOUT_OUTCOME}" = "failure" ]; then
+            stage="checkout"
+          elif [ "${FETCH_OUTCOME}" = "failure" ]; then
+            stage="fetch"
+          elif [ "${CHECK_OUTCOME}" = "failure" ]; then
+            stage="check"
+          elif [ "${MERGE_OUTCOME}" = "failure" ]; then
+            stage="merge"
+          elif [ "${PUSH_OUTCOME}" = "failure" ]; then
+            stage="push"
+          fi
+
+          conflict_file="${RUNNER_TEMP}/sync-conflict-files.txt"
+          workflow_file="${RUNNER_TEMP}/sync-workflow-files.txt"
+          if [ "$stage" = "merge" ] && [ -s "$conflict_file" ]; then
+            stage_zh="合并冲突"
+          else
+            case "$stage" in
+              checkout) stage_zh="检出仓库失败" ;;
+              fetch) stage_zh="获取上游失败" ;;
+              check) stage_zh="比较上游提交失败" ;;
+              merge) stage_zh="合并上游失败" ;;
+              push) stage_zh="推送到 origin/main 失败" ;;
+              *) stage_zh="同步失败" ;;
+            esac
+          fi
+
+          {
+            echo "自动同步上游失败，需要人工处理。"
+            echo
+            echo "- **失败阶段**: ${stage_zh}"
+            echo "- **上游**: \`${UPSTREAM_REPO}\` 分支 \`${UPSTREAM_BRANCH}\`"
+            echo "- **运行记录**: ${RUN_URL}"
+            echo "- **尝试次数**: ${RUN_ATTEMPT}"
+            echo
+            echo "### 冲突文件"
+            echo
+            if [ -s "$conflict_file" ]; then
+              sed 's/^/- /' "$conflict_file"
+            else
+              echo "（无。本次失败不是合并冲突，或没能列出冲突文件。）"
+            fi
+            echo
+            echo "### 本地修复"
+            echo
+            echo "在本机检出 fork 后，把上游合进来并解决冲突，再推回 \`main\`："
+            echo
+            echo '```bash'
+            echo "git clone https://github.com/${GITHUB_REPOSITORY}.git"
+            echo "cd ${GITHUB_REPOSITORY#*/}"
+            echo "git remote add upstream https://github.com/${UPSTREAM_REPO}.git"
+            echo "git fetch upstream"
+            echo "git checkout main"
+            echo "git merge upstream/${UPSTREAM_BRANCH}"
+            echo "# 解决冲突后"
+            echo "git add -A"
+            echo "git commit"
+            echo "git push origin main"
+            echo '```'
+            echo
+            echo "### 推送 token（UPSTREAM_SYNC_TOKEN）"
+            echo
+            echo "同步的推送和开 issue 都优先使用 secret \`UPSTREAM_SYNC_TOKEN\`，未配置时回退到 \`GITHUB_TOKEN\`。"
+            echo
+            echo "- 只有 PAT 推送才会触发 \`obs.yml\` 等下游 workflow；\`GITHUB_TOKEN\` 推送不会触发它们。"
+            echo "- \`GITHUB_TOKEN\` 没有 workflow 权限，不能推送对 \`.github/workflows/\` 的修改。上游如果改了 workflow 文件，推送会被 GitHub 拒绝。"
+            echo "- 修复：在仓库 Secrets 中添加 \`UPSTREAM_SYNC_TOKEN\`，值为具有 **repo** 与 **workflow** scope 的 PAT。"
+            echo
+            echo "本次合并涉及的 workflow 文件："
+            echo
+            if [ -s "$workflow_file" ]; then
+              sed 's/^/- /' "$workflow_file"
+            else
+              echo "（无，或合并尚未成功，没能列出。）"
+            fi
+
+            append_log() {
+              local file="$1" heading="$2"
+              if [ -s "$file" ]; then
+                echo
+                echo "### ${heading}"
+                echo
+                echo '````'
+                head -n 80 "$file"
+                echo '````'
+              fi
+            }
+            append_log "${RUNNER_TEMP}/sync-fetch-error.txt" "获取上游时的输出"
+            append_log "${RUNNER_TEMP}/sync-merge-error.txt" "合并时的输出"
+            append_log "${RUNNER_TEMP}/sync-push-error.txt" "推送时的输出"
+          } > "$body_file"
+
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            cat "$body_file" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          explain_failure() {
+            echo "::error::无法创建或评论同步失败 issue。失败阶段: ${stage_zh}。运行记录: ${RUN_URL}" >&2
+            echo "若日志含 Resource not accessible by integration (createIssue)：通常是仓库未开启 Issues，或当前 token 没有 issues 写权限。" >&2
+            echo "请确认 Settings → General → Features 已启用 Issues，且 Settings → Actions → General → Workflow permissions 为 Read and write。" >&2
+            echo "若使用 UPSTREAM_SYNC_TOKEN，PAT 需要 repo scope（含 issues）；推送 workflow 文件还需要 workflow scope。" >&2
+            gh api "repos/${GITHUB_REPOSITORY}" --jq '{has_issues:.has_issues}' >&2 || true
+          }
+
+          label_ready=0
+          if gh label create "$label" --repo "$GITHUB_REPOSITORY" --color B60205 --description "上游仓库自动同步失败" --force; then
+            label_ready=1
+          else
+            echo "创建或更新标签 ${label} 失败，后续将尝试不带标签开 issue" >&2
+          fi
+
+          existing=""
+          if [ "$label_ready" -eq 1 ]; then
+            if ! existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label "$label" --limit 1 --json number --jq '.[0].number // empty')"; then
+              echo "按标签查询已有 issue 失败，改为直接创建" >&2
+              existing=""
+            fi
+          fi
+
+          title="上游同步失败"
+          if [ -n "$existing" ]; then
+            if ! gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body-file "$body_file"; then
+              explain_failure
+              exit 1
+            fi
+            echo "已评论已有 issue #${existing}"
+            exit 0
+          fi
+
+          if [ "$label_ready" -eq 1 ]; then
+            if gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body_file" --label "$label"; then
+              echo "已创建带标签的 issue"
+              exit 0
+            fi
+            echo "带标签创建 issue 失败，改为不带标签重试" >&2
+          fi
+
+          if ! gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body_file"; then
+            explain_failure
+            exit 1
+          fi
+          echo "已创建不带标签的 issue"
